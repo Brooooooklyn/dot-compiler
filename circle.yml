@@ -1,0 +1,13 @@
+machine:
+  node:
+    version: 6
+
+test:
+  override:
+    - npm run lint && npm run compile && npm run check:cycle && npm run cover
+  post:
+    - cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
+
+notify:
+  webhooks:
+    - url: http://teambition.vvlyn.com/api/circle

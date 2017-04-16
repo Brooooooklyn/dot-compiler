@@ -1,0 +1,8 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../spec-js",
+    "inlineSourceMap": true,
+    "allowJs": true
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "name": "dot-compiler",
+  "version": "0.0.1",
+  "description": "Better webpack loader for doT",
+  "main": "index.js",
+  "scripts": {
+    "benchmark": "node benchmark",
+    "check:cycle": "madge lib/index.js --circular",
+    "compile": "npm-run-all tsc tsc:spec",
+    "cover": "rm -rf ./.nyc_output ./coverage && nyc --reporter=html --reporter=lcov --exclude=node_modules mocha spec-js/**/*.js",
+    "lint": "npm-run-all -p lint:js lint:ts",
+    "lint:js": "standard benchmark/**/*.js",
+    "lint:ts": "tslint src/**/*.ts",
+    "test": "mocha --compilers ts:ts-node/register test/**/*.spec.ts",
+    "tsc": "rm -rf lib          && tsc -p src  --diagnostics --pretty",
+    "tsc:spec": "rm -rf spec-js && tsc -p test --diagnostics --pretty"
+  },
+  "keywords": [
+    "doT",
+    "template",
+    "html",
+    "webpack",
+    "loader"
+  ],
+  "author": "lynweklm@gmail.com",
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "^4.17.4",
+    "tslib": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/benchmark": "^1.0.30",
+    "@types/chai": "^3.5.0",
+    "@types/chalk": "^0.4.31",
+    "@types/lodash": "^4.14.62",
+    "@types/mocha": "^2.2.40",
+    "benchmark": "^2.1.4",
+    "chai": "^3.5.0",
+    "chalk": "^1.1.3",
+    "coveralls": "^2.13.0",
+    "madge": "^1.6.0",
+    "mocha": "^3.2.0",
+    "npm-run-all": "^4.0.2",
+    "nyc": "^10.2.0",
+    "standard": "^10.0.2",
+    "ts-node": "^3.0.2",
+    "tslint": "^5.1.0",
+    "tslint-eslint-rules": "^4.0.0",
+    "typescript": "^2.2.2"
+  }
+}
