@@ -7,6 +7,33 @@ describe('tokenizer test suit', () => {
     expect(result).to.deep.equal(['3333 <div>22</div>', '{{', ' it.normal ', '}}'])
   })
 
+  it('should parse evaluation with Curly', () => {
+    const result = tokenizer(`{{ for(var prop in it) { }}<div>{{=prop}}</div>{{ } }}`)
+    expect(result).to.deep.equal([
+      '{{', ' for(var prop in it) { ', '}}',
+      '<div>', '{{', '=', 'prop', '}}', '</div>',
+      '{{', ' } ', '}}'
+    ])
+  })
+
+  it('should parse evaluation with colon', () => {
+    const result = tokenizer(`{{ var foo = {a: 1}; for(var prop in foo) { }}<div>{{=prop}}</div>{{ } }}`)
+    expect(result).to.deep.equal([
+      '{{', ' var foo = {a: 1}; for(var prop in foo) { ', '}}',
+      '<div>', '{{', '=', 'prop', '}}', '</div>',
+      '{{', ' } ', '}}'
+    ])
+  })
+
+  it('should parse evaluation with hash', () => {
+    const result = tokenizer(`{{ var foo = {a: 1, '#': 2}; for(var prop in foo) { }}<div>{{=prop}}</div>{{ } }}`)
+    expect(result).to.deep.equal([
+      '{{', ` var foo = {a: 1, '#': 2}; for(var prop in foo) { `, '}}',
+      '<div>', '{{', '=', 'prop', '}}', '</div>',
+      '{{', ' } ', '}}'
+    ])
+  })
+
   it('should parse "="', () => {
     const result = tokenizer(`{{= it.normal }}`)
     expect(result).to.deep.equal(['{{', '=', ' it.normal ', '}}'])

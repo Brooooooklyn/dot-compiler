@@ -1,6 +1,7 @@
 import { forEach } from 'lodash'
 import { tokens, NORMAL_OPERATOR_ARR, tokensArray } from './token'
 
+
 let tokenStack: string[] = []
 let content = ''
 
@@ -47,19 +48,18 @@ function readOpenCurly (pos: number, token = ''): number {
 function readExpression (pos: number, token = ''): number {
   const current = content.charAt(pos)
   const { length } = content
-  if (
-    pos !== length &&
-    current !== tokens.CLOSE_CURLY &&
-    current !== tokens.OPEN_CURLY &&
-    current !== tokens.SNIPPET &&
-    current !== tokens.COLON
-  ) {
-    pos ++
-    token += current
-    return readExpression(pos, token)
+  if (pos !== length) {
+    if (current === tokens.CLOSE_CURLY || current === tokens.OPEN_CURLY) {
+      const next = content.charAt(pos + 1)
+      if (next !== current) {
+        return readExpression(pos + 2, token + current + next)
+      } else {
+        tokenStack.push(token)
+        return pos
+      }
+    }
   }
-  tokenStack.push(token)
-  return pos
+  return readExpression(pos + 1, token + current)
 }
 
 function readCloseCurly (pos: number, token = ''): number {
