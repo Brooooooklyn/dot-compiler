@@ -100,4 +100,9 @@ describe('tokenizer test suit', () => {
     const parse = () => tokenizer(`{{##def.snippet:~<div>{{=data.name}}</div>{{#def.joke}}#}}{{#def.snippet}}`)
     expect(parse).to.throw(`unexpected token at: ##def.snippet: ^^^^^ ~`)
   })
+
+  it('should throw unexpected token in snippet def when not a valid word after ":" in "#"', () => {
+    const parse = () => tokenizer(`{{##def.snippet:@<div>{{=data.name}}</div>{{#def.joke}}#}}{{#def.snippet}}`)
+    expect(parse).to.throw(`unexpected token at: ##def.snippet: ^^^^^ @`)
+  })
 })

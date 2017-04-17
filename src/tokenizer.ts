@@ -146,7 +146,7 @@ function readSnippetDef (pos: number, tmpStack: string[] = [], token = ''): numb
   if (current === tokens.COLON) {
     tmpStack.push(token + current)
     const next = content.charAt(pos + 1)
-    if (tokensArray.indexOf(next) >= 0) {
+    if (!/\w|\<|{/.test(next)) {
       throwError(`unexpected token at: ##def.${token}: ^^^^^ ${next}`)
     }
     return readSnippetDef(pos + 1, tmpStack)
