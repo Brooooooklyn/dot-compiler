@@ -67,7 +67,7 @@ function readCloseCurly (pos: number, token = ''): number {
   if (token.length < 2) {
     token += current
     pos += 1
-    return readOpenCurly(pos, token)
+    return readCloseCurly(pos, token)
   }
   tokenStack.push(token)
   return pos

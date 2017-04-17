@@ -7,7 +7,7 @@
     "benchmark": "node benchmark",
     "check:cycle": "madge lib/index.js --circular",
     "compile": "npm-run-all tsc tsc:spec",
-    "cover": "rm -rf ./.nyc_output ./coverage && nyc --reporter=html --reporter=lcov --exclude=node_modules mocha spec-js/**/*.js",
+    "cover": "rm -rf ./.nyc_output ./coverage && nyc --reporter=html --reporter=lcov --exclude=node_modules --exclude=spec-js mocha spec-js/**/*.js",
     "lint": "npm-run-all -p lint:js lint:ts",
     "lint:js": "standard benchmark/**/*.js",
     "lint:ts": "tslint src/**/*.ts",
