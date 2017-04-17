@@ -3,8 +3,8 @@ import { expect } from 'chai'
 
 describe('tokenizer test suit', () => {
   it('should parse nomal experssion', () => {
-    const result = tokenizer(`{{ it.normal }}`)
-    expect(result).to.deep.equal(['{{', ' it.normal ', '}}'])
+    const result = tokenizer(`3333 <div>22</div>{{ it.normal }}`)
+    expect(result).to.deep.equal(['3333 <div>22</div>', '{{', ' it.normal ', '}}'])
   })
 
   it('should parse "="', () => {
