@@ -1,5 +1,6 @@
 node_modules
 lib
 coverage
+spec-js
 .nyc_output
 *.log
