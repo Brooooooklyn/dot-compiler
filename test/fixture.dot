@@ -1,0 +1,96 @@
+{{##def.teamIcon:data:
+  {{? data.type != 'default' && data.styleName}}{{=data.styleName}}{{??}}icon-team-tie{{?}}
+#}}
+
+{{##def.teamStyle:data:
+  {{? data.type != 'default' && data.styleColor}}style="color: {{=data.styleColor}}"{{?}}
+#}}
+
+{{##def.all:data:
+  <li class="symbol-item hinted" data-id="{{=data._id}}" data-title="{{!data.name}}">
+    <a>
+      <div class="avatar pull-left">
+        <span class="icon icon-users"></span>
+      </div>
+      <div class="flex-vert flex-center">
+        <div class="item-name">
+          <span>{{!data.name}}</span>・{{=data.hasMembers.length}}
+        </div>
+      </div>
+    </a>
+  </li>
+#}}
+
+{{##def.team:data:
+  <li class="symbol-item team hinted"
+    data-id="{{=data._id}}" data-title="{{!data.name}}"
+    data-gta="{action: 'view team member', control: 'Side Member Menu'}">
+    <a data-gta="event" data-label="involve team members">
+      <div class="team-avatar avatar pull-left">
+        <span class="icon {{#def.teamIcon:data}}"{{#def.teamStyle:data}}></span>
+      </div>
+      <div class="team-info flex-vert flex-center">
+        <div class="team-name item-name">
+          <span>{{!data.name}}</span>・{{=data.hasMembers.length}}
+        </div>
+        {{? data.belongsTo}}
+        <p class="team-child muted">
+          {{!tb_i18n.get('team.belongsTo', data.belongsTo)}}
+        </p>
+        {{?}}
+      </div>
+    </a>
+  </li>
+#}}
+
+{{##def.group:data:
+<li class="symbol-item group hinted"
+    data-id="{{=data._id}}"
+    data-gta="{action: 'view group member', control: 'Side Member Menu'}"
+    data-title="{{!data.name}}">
+  <a data-gta="event" data-label="involve group members">
+    <div class="group-avatar avatar pull-left">
+      <span class="icon icon-member-group"></span>
+    </div>
+    <div class="group-info flex-vert flex-center">
+      <div class="group-name item-name">
+        <span>{{!data.name}}</span>・{{=data.activeMembersCount}}
+      </div>
+    </div>
+  </a>
+</li>
+#}}
+
+{{##def.member:data:
+  <li class="symbol-item {{? data.notInvolved}}other{{??}}involved{{?}} hinted"
+      data-id="{{=data._id}}" data-gta="event" data-label="at item" data-title="{{!data.name}}">
+    <a>
+      {{? data.avatarUrl}}
+        <div class="avatar img-circle" style="background-image:url({{=data.avatarUrl}});"></div>
+      {{?}}
+      {{! data.name }}
+      <span class="tip">
+        {{? data.notInvolved}}
+          {{=tb_i18n.get('at.not.involved')}}
+        {{?}}
+      </span>
+    </a>
+  </li>
+#}}
+
+<ul class="symbol-list list-unstyled thin-scroll">
+{{? it.membersData && it.membersData.projectMembers.length}}
+  {{~ it.membersData.projectMembers: data}}
+
+    {{? data.type === 'all'}}
+      {{#def.all:data}}
+    {{?? data.type === 'team'}}
+      {{#def.team:data}}
+    {{?? data.type === 'group'}}
+      {{#def.group:data}}
+    {{??}}
+      {{#def.member:data}}
+    {{?}}
+
+  {{~}}
+{{?}}

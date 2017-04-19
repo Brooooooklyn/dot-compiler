@@ -1,0 +1,156 @@
+{{##def.teamIcon:data:
+  {{? data.type != 'default' && data.styleName}}{{=data.styleName}}{{??}}icon-team-tie{{?}}
+#}}
+
+{{##def.teamStyle:data:
+  {{? data.type != 'default' && data.styleColor}}style="color: {{=data.styleColor}}"{{?}}
+#}}
+
+{{##def.all:data:
+  <li class="symbol-item hinted" data-id="{{=data._id}}" data-title="{{!data.name}}">
+    <a>
+      <div class="avatar pull-left">
+        <span class="icon icon-users"></span>
+      </div>
+      <div class="flex-vert flex-center">
+        <div class="item-name">
+          <span>{{!data.name}}</span>・{{=data.hasMembers.length}}
+        </div>
+      </div>
+    </a>
+  </li>
+#}}
+
+{{##def.team:data:
+  <li class="symbol-item team hinted"
+    data-id="{{=data._id}}" data-title="{{!data.name}}"
+    data-gta="{action: 'view team member', control: 'Side Member Menu'}">
+    <a data-gta="event" data-label="involve team members">
+      <div class="team-avatar avatar pull-left">
+        <span class="icon {{#def.teamIcon:data}}"{{#def.teamStyle:data}}></span>
+      </div>
+      <div class="team-info flex-vert flex-center">
+        <div class="team-name item-name">
+          <span>{{!data.name}}</span>・{{=data.hasMembers.length}}
+        </div>
+        {{? data.belongsTo}}
+        <p class="team-child muted">
+          {{!tb_i18n.get('team.belongsTo', data.belongsTo)}}
+        </p>
+        {{?}}
+      </div>
+    </a>
+  </li>
+#}}
+
+{{##def.group:data:
+<li class="symbol-item group hinted"
+    data-id="{{=data._id}}"
+    data-gta="{action: 'view group member', control: 'Side Member Menu'}"
+    data-title="{{!data.name}}">
+  <a data-gta="event" data-label="involve group members">
+    <div class="group-avatar avatar pull-left">
+      <span class="icon icon-member-group"></span>
+    </div>
+    <div class="group-info flex-vert flex-center">
+      <div class="group-name item-name">
+        <span>{{!data.name}}</span>・{{=data.activeMembersCount}}
+      </div>
+    </div>
+  </a>
+</li>
+#}}
+
+{{##def.member:data:
+  <li class="symbol-item {{? data.notInvolved}}other{{??}}involved{{?}} hinted"
+      data-id="{{=data._id}}" data-gta="event" data-label="at item" data-title="{{!data.name}}">
+    <a>
+      {{? data.avatarUrl}}
+        <div class="avatar img-circle" style="background-image:url({{=data.avatarUrl}});"></div>
+      {{?}}
+      {{! data.name }}
+      <span class="tip">
+        {{? data.notInvolved}}
+          {{=tb_i18n.get('at.not.involved')}}
+        {{?}}
+      </span>
+    </a>
+  </li>
+#}}
+
+<ul class="symbol-list list-unstyled thin-scroll">
+  {{ var hasGuestMembers = it.membersData &&
+                           it.membersData.guestMembers &&
+                           it.membersData.guestMembers.length; }}
+
+  {{? it.membersData && (it.membersData.organizationMembers.length || hasGuestMembers)}}
+    <h5 class="project-members">{{=tb_i18n.get('project.at.members.project')}}</h5>
+  {{?}}
+
+  <!-- 项目成员 -->
+  {{? it.membersData && it.membersData.projectMembers.length}}
+    {{~ it.membersData.projectMembers: data}}
+
+      {{? data.type === 'all'}}
+        {{#def.all:data}}
+      {{?? data.type === 'team'}}
+        {{#def.team:data}}
+      {{?? data.type === 'group'}}
+        {{#def.group:data}}
+      {{??}}
+        {{#def.member:data}}
+      {{?}}
+
+    {{~}}
+  {{?}}
+
+  <!-- 群组成员 -->
+  {{? it.membersData && it.membersData.groupMembers.length}}
+    {{~ it.membersData.groupMembers: data}}
+      {{#def.member:data}}
+    {{~}}
+  {{?}}
+
+  <!-- 在企业但不在项目的成员 -->
+  {{? it.membersData && it.membersData.organizationMembers.length}}
+    <h5 class="not-project-members">{{=tb_i18n.get('project.at.members.organization')}}</h5>
+    {{~ it.membersData.organizationMembers: members}}
+      <li class="symbol-item not-project-member" data-id="{{=members._id}}" data-gta="event" data-label="at item">
+        <a>
+          {{? members.avatarUrl}}
+            <div class="avatar img-circle" style="background-image:url({{=members.avatarUrl}});"></div>
+          {{?}}
+          {{! members.name }}<span class="tip">{{?members.notInvolved}}{{=tb_i18n.get('at.not.involved')}}{{?}}</span>
+        </a>
+      </li>
+    {{~}}
+  {{?}}
+
+  <!-- 访客 -->
+  {{? hasGuestMembers}}
+    <h5 class="guest-members">{{=tb_i18n.get('project.at.members.guest')}}</h5>
+    {{~ it.membersData.guestMembers: members}}
+      <li class="symbol-item guest-member" data-id="{{=members._id}}" data-gta="event" data-label="at item">
+        <a>
+          {{? members.avatarUrl}}
+            <div class="avatar img-circle" style="background-image:url({{=members.avatarUrl}});"></div>
+          {{?}}
+          {{! members.name }}<span class="tip">{{?members.notInvolved}}{{=tb_i18n.get('at.not.involved')}}{{?}}</span>
+        </a>
+      </li>
+    {{~}}
+  {{?}}
+
+  <!-- 任务id搜索结果 -->
+  {{? it.linksData && it.linksData.length}}
+    {{~ it.linksData: link}}
+      <li class="symbol-item link-item" data-id="{{=link._id}}" data-gta="event" data-label="hash item">
+        <a>
+          <span class="icon icon-board img-circle"></span>
+          <span class="title">{{! link.content }}</span>
+          <span class="task-id-placeholder"></span>
+        </a>
+      </li>
+    {{~}}
+  {{?}}
+</ul>

@@ -1,18 +1,40 @@
 import tokenizer from '../lib/tokenizer'
 import { expect } from 'chai'
 
-describe('tokenizer test suit', () => {
+describe('tokenizer test suit: ', () => {
   it('should parse nomal experssion', () => {
     const result = tokenizer(`3333 <div>22</div>{{ it.normal }}`)
     expect(result).to.deep.equal(['3333 <div>22</div>', '{{', ' it.normal ', '}}'])
   })
 
-  it('should parse evaluation with Curly', () => {
-    const result = tokenizer(`{{ for(var prop in it) { }}<div>{{=prop}}</div>{{ } }}`)
+  it('should strip "\\n" and " "', () => {
+    const result = tokenizer(`
+      {{= it.hello }}
+      aa
+      <div>123</div>
+      {{!it.foo}}
+    `)
     expect(result).to.deep.equal([
-      '{{', ' for(var prop in it) { ', '}}',
+      ' ',
+      '{{',
+      '=',
+      ' it.hello ',
+      '}}',
+      ' aa <div>123</div> ',
+      '{{',
+      '!',
+      'it.foo',
+      '}}',
+      ' '
+    ])
+  })
+
+  it('should parse evaluation with Curly', () => {
+    const result = tokenizer(`{{ for(var prop in it){}}<div>{{=prop}}</div>{{}}}<div>`)
+    expect(result).to.deep.equal([
+      '{{', ' for(var prop in it){', '}}',
       '<div>', '{{', '=', 'prop', '}}', '</div>',
-      '{{', ' } ', '}}'
+      '{{', '}', '}}', '<div>'
     ])
   })
 
@@ -44,25 +66,21 @@ describe('tokenizer test suit', () => {
     expect(result).to.deep.equal(['{{', '!', ' it.normal ', '}}'])
   })
 
-  it('should parse "?', () => {
+  it('should parse "?"', () => {
     const result = tokenizer(`{{? it.normal }}<div>123</div>{{?}}`)
-    expect(result).to.deep.equal(['{{', '?', ' it.normal ', '}}', '<div>123</div>' , '{{', '?', '}}'])
+    expect(result).to.deep.equal(['{{', '?', ' it.normal ', '}}', '<div>123</div>', '{{', '?', '}}'])
   })
 
-  it('should throw error in "?"', () => {
-    try {
-      tokenizer(`{{?! it.normal }}<div>123</div>{{?}}`)
-      throw 1
-    } catch (e) {
-      expect(e.message).to.equal('unexpected token at ?!')
-    }
+  it('should parse "?" with "!"', () => {
+    const result = tokenizer(`{{?!it.normal}}<div>123</div>{{?}}`)
+    expect(result).to.deep.equal(['{{', '?', '!it.normal', '}}', '<div>123</div>', '{{', '?', '}}'])
   })
 
   it('should parse "??', () => {
     const result = tokenizer(`{{? it.normal }}<div>123</div>{{?? it.danger}}<span>321</span>{{?}}`)
     expect(result).to.deep.equal([
       '{{', '?', ' it.normal ', '}}',
-      '<div>123</div>' ,
+      '<div>123</div>',
       '{{', '??', ' it.danger', '}}',
       '<span>321</span>',
       '{{', '?', '}}'
@@ -99,12 +117,12 @@ describe('tokenizer test suit', () => {
   })
 
   it('should parse "#" with param', () => {
-    const result = tokenizer(`{{##def.snippet:data:<div>{{=data.name}}</div>{{#def.joke}}#}}{{#def.snippet}}`)
+    const result = tokenizer(`{{##def.snippet:data:<div>{{=data.name}}</div>{{#def.joke}} #}}{{#def.snippet:it}}`)
     expect(result).to.deep.equal([
       '{{', '##def', 'snippet:', 'data:',
       '<div>', '{{', '=', 'data.name', '}}',
-      '</div>', '{{', '#def', 'joke', '}}', '#', '}}',
-      '{{', '#def', 'snippet', '}}'
+      '</div>', '{{', '#def', 'joke', '}}', ' ', '#', '}}',
+      '{{', '#def', 'snippet:it', '}}'
     ])
   })
 
@@ -128,8 +146,4 @@ describe('tokenizer test suit', () => {
     expect(parse).to.throw(`unexpected token at: ##def.snippet: ^^^^^ ~`)
   })
 
-  it('should throw unexpected token in snippet def when not a valid word after ":" in "#"', () => {
-    const parse = () => tokenizer(`{{##def.snippet:@<div>{{=data.name}}</div>{{#def.joke}}#}}{{#def.snippet}}`)
-    expect(parse).to.throw(`unexpected token at: ##def.snippet: ^^^^^ @`)
-  })
 })

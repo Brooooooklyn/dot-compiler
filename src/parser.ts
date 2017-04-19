@@ -1,13 +1,8 @@
 import tokenizer from './tokenizer'
+import parseAst from './ast'
+import { RootNode } from './ast/Root'
 
-export type State = 'BEGIN' |
-  'EXPERSSION_START' |
-  'EXPERSSION_END' |
-  'BLOCK_START' |
-  'BLOCK_END' |
-  'END'
-
-export default function parser (content: string) {
-  const tokenTree = tokenizer(content)
-  return tokenTree
+export default function parser (content: string): RootNode {
+  const tokens = tokenizer(content)
+  return parseAst(tokens)
 }

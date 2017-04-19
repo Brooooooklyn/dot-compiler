@@ -1,0 +1,5 @@
+require('./bind')
+require('./escape')
+require('./loop')
+require('./snippet')
+require('./fixture')
