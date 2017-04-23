@@ -1,11 +1,13 @@
-import { forEach } from 'lodash'
+import * as _ from 'lodash'
 import { tokens, NORMAL_OPERATOR_ARR, tokensArray } from './token'
 
 let tokenStack: string[] = []
+let tmpStack: string[] = []
 let content = ''
 
 export default function tokenizer (input: string, currentPos = 0): string[] {
   content = input
+  tmpStack = []
   const current = content.charAt(currentPos)
   const { length } = content
   if (current === tokens.OPEN_CURLY) {
@@ -45,48 +47,89 @@ function readOpenCurly (pos: number, token = ''): number {
 }
 
 function readExpression (pos: number, token = ''): number {
-  const current = content.charAt(pos)
-  const { length } = content
-  if (
-    pos !== length &&
-    current !== tokens.CLOSE_CURLY &&
-    current !== tokens.OPEN_CURLY &&
-    current !== tokens.SNIPPET &&
-    current !== tokens.COLON
-  ) {
-    pos ++
-    token += current
-    return readExpression(pos, token)
+  let current = content.charAt(pos)
+  if (current === '\n') {
+    return readExpression(pos + 1, token)
   }
-  tokenStack.push(token)
-  return pos
+  if (current === ' ') {
+    const last = token.substr(- 1)
+    if (last === ' ') {
+      return readExpression(pos + 1, token)
+    }
+    const next = content.charAt(pos + 1)
+    if (next === ' ') {
+      return readExpression(pos + 2, token + current)
+    } else {
+      return readExpression(pos + 1, token + current)
+    }
+  }
+  const { length } = content
+  if (pos < length) {
+    if (current === tokens.CLOSE_CURLY || current === tokens.OPEN_CURLY) {
+      const next = content.charAt(pos + 1)
+      if (next !== current) {
+        return readExpression(pos + 1, token + current)
+      } else {
+        if (token.length !== 0) {
+          tokenStack.push(token)
+        }
+        return pos
+      }
+    }
+    if (current === tokens.SNIPPET) {
+      const next = content.charAt(pos + 1)
+      if (next === tokens.CLOSE_CURLY) {
+        const nextTwo = content.charAt(pos + 2)
+        if (nextTwo === tokens.CLOSE_CURLY) {
+          if (token.length !== 0) {
+            tokenStack.push(token)
+          }
+          return pos
+        }
+      }
+    }
+  } else {
+    if (token.length) {
+      tokenStack.push(token)
+    }
+    return pos
+  }
+  return readExpression(pos + 1, token + current)
 }
 
-function readCloseCurly (pos: number, token = ''): number {
-  const current = content.charAt(pos)
-  if (token.length < 2) {
-    token += current
-    pos += 1
-    return readOpenCurly(pos, token)
+function readCloseCurly (pos: number, token = tokens.CLOSE_CURLY): number {
+  const next = content.charAt(pos + 1)
+  if (next === tokens.CLOSE_CURLY) {
+    return readCloseCurly(pos + 1, token + next)
   }
-  tokenStack.push(token)
-  return pos
+  if (token.length < 2) {
+    return readExpression(pos + 1, tokens.CLOSE_CURLY + next)
+  }
+  if (token.length >= 3) {
+    tokenStack.push(token.substring(0, token.length - 2))
+  }
+  tokenStack.push(tokens.CLOSE_CURLY + tokens.CLOSE_CURLY)
+  return pos + 1
 }
 
 function readIf (pos: number): number | never {
   const next = content.charAt(pos + 1)
+  const legalStart = [ tokens.CLOSE_CURLY, tokens.EXP_LOOP, tokens.ESCAPE_BIND ]
   if (next === tokens.EXP_IF) {
     tokenStack.push('??')
     return pos + 2
-  } else if (Math.abs(tokensArray.indexOf(next)) !== 1) {
+  } else if (notEquals(next, legalStart)) {
     return throwError(`unexpected token at ?${next}`)
+  } else if (legalStart.indexOf(next) > -1) {
+    tokenStack.push('?')
+    return readExpression(pos + 1)
   } else {
     tokenStack.push('?')
     return pos + 1
   }
 }
 
-function readLoop (pos: number, tmpStack: string[] = [], token = ''): number | never {
+function readLoop (pos: number, token = ''): number | never {
   if (tmpStack.length > 5) {
     return throwError(`unexpected token at loop expression: ${tmpStack.join('')} ^^^^^`)
   }
@@ -96,23 +139,24 @@ function readLoop (pos: number, tmpStack: string[] = [], token = ''): number | n
   }
   if (current === tokens.CLOSE_CURLY) {
     if (tmpStack.length) {
-      forEach(tmpStack, v => {
+      _.forEach(tmpStack, v => {
         tokenStack.push(v)
       })
+      tmpStack = []
     }
-    if (token.length) {
+    if (token.length !== 0) {
       tokenStack.push(token)
     }
     return pos
   } else if (current === tokens.EXP_LOOP) {
     tmpStack.push(current)
-    return readLoop(pos + 1, tmpStack)
+    return readLoop(pos + 1)
   } else if (current === tokens.COLON) {
     tmpStack.push(token)
     tmpStack.push(current)
-    return readLoop(pos + 1, tmpStack)
+    return readLoop(pos + 1)
   } else {
-    return readLoop(pos + 1, tmpStack, token + current)
+    return readLoop(pos + 1, token + current)
   }
 }
 
@@ -146,13 +190,16 @@ function readSnippetDef (pos: number, tmpStack: string[] = [], token = ''): numb
   if (current === tokens.COLON) {
     tmpStack.push(token + current)
     const next = content.charAt(pos + 1)
-    if (!/\w|\<|{/.test(next)) {
+    // @warn
+    if (tokensArray.indexOf(next) > -1) {
       throwError(`unexpected token at: ##def.${token}: ^^^^^ ${next}`)
     }
     return readSnippetDef(pos + 1, tmpStack)
   } else if (tokensArray.indexOf(current) >= 0) {
     if (tmpStack.length) {
-      forEach(tmpStack, v => tokenStack.push(v))
+      _.forEach(tmpStack, v => {
+        tokenStack.push(v)
+      })
     }
     return pos - token.length
   } else {

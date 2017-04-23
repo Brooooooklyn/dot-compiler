@@ -9,7 +9,7 @@ function watch (paths: string[]) {
   return Observable.from(paths)
     .map(p => path.join(process.cwd(), p))
     .mergeMap(path => Observable.create((observer: Observer<string>) => {
-      fileWacher(path, (_: any, fileName: string) => {
+      fileWacher(path, { recursive: true }, (_: any, fileName: string) => {
         observer.next(fileName)
       })
     }))
@@ -23,6 +23,8 @@ watch(['spec-js', 'lib'])
     console.error(err)
   })
 
+let errorCode: number
+
 function runMocha() {
   Object.keys(require.cache)
     .forEach((k: string) => delete require.cache[k])
@@ -32,12 +34,12 @@ function runMocha() {
     .forEach(f => {
       mocha.addFile(path.join(process.cwd(), 'spec-js', f))
     })
-  mocha.run(failures => {
-    process.on('exit', function () {
-      process.exit(failures)
-    })
-  })
+  mocha.run(failures => errorCode = failures)
 }
+
+process.on('exit', function () {
+  process.exit(errorCode)
+})
 
 process.on('uncaughtException', (err: any) => {
   console.info(`Caught exception: ${err.stack}`)
